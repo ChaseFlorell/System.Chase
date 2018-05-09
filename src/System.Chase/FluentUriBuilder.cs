@@ -9,6 +9,17 @@
             _builder = new UriBuilder();
         }
 
+        public FluentUriBuilder(string rootUrl)
+        {
+            var baseUrl = new Uri(rootUrl);
+            _builder = new UriBuilder(baseUrl);
+        }
+
+        public FluentUriBuilder(Uri rootUri)
+        {
+            _builder = new UriBuilder(rootUri);
+        }
+
         public Uri Build() => _builder.Uri;
 
         public FluentUriBuilder Credentials(string userName, string password)
@@ -36,7 +47,7 @@
             return this;
         }
 
-        public FluentUriBuilder Port(string port)
+        public FluentUriBuilder Port(int port)
         {
             _builder.Port = port;
             return this;
