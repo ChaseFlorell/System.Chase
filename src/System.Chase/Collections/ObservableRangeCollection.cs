@@ -4,7 +4,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 
-namespace System.Chase
+namespace System.Chase.Collections
 {
     public class ObservableRangeCollection<T> : ObservableCollection<T>
     {
