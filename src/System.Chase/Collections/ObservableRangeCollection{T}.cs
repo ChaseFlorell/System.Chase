@@ -14,7 +14,7 @@ namespace System.Chase.Collections
         public ObservableRangeCollection()
         {
         }
-
+        
         public ObservableRangeCollection(IEnumerable<T> collection) : base(collection)
         {
         }
@@ -46,17 +46,25 @@ namespace System.Chase.Collections
             AddRange(range);
         }
 
-
+        /// <summary>
+        /// Diffs the new range with the existing Items adding the new, removing the old, and leaving the matching in tact. Uses a <see cref="EqualityComparer{T}.Default"/> comparer
+        /// </summary>
+        /// <param name="range">range to diff with</param>
         public void Update(IEnumerable<T> range) => Update(range, EqualityComparer<T>.Default);
 
+        /// <summary>
+        /// Diffs the new range with the existing Items adding the new, removing the old, and leaving the matching in tact.ÏÏ
+        /// </summary>
+        /// <param name="range">range to diff with</param>
+        /// <param name="comparer">Equality Comparer used to compare the items</param>
         public void Update(IEnumerable<T> range, IEqualityComparer<T> comparer)
         {
             var args = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset, range, Items);
             RaiseCollectionChanging(args);
 
             var newitems = range.ToArray();
-            var itemsForRemoval = Items.Except(newitems, comparer).ToArray();
             var itemsForAddition = newitems.Except(Items, comparer).ToArray();
+            var itemsForRemoval = Items.Except(newitems, comparer).ToArray();
 
             for (var index = 0; index < itemsForAddition.Length; index++)
                 Items.Add(itemsForAddition[index]);
