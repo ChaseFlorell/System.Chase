@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFrameworks>netstandard1.0;netstandard2.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -10,8 +9,7 @@
     <PackageProjectUrl>https://github.com/ChaseFlorell/System.Chase</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ChaseFlorell/System.Chase</RepositoryUrl>
   </PropertyGroup>
-  
-   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.0' ">
-     <PackageReference Include="System.ComponentModel" Version="4.3.0" />
-   </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.0' ">
+    <PackageReference Include="System.ComponentModel" Version="4.3.0" />
+  </ItemGroup>
 </Project>
