@@ -21,7 +21,7 @@ namespace System.Chase.Tests.Unit
             var fragment = "frag";
             var root = "http://example.com";
             var builder = new FluentUriBuilder(root);
-            
+
             // execute
             var result = builder.Fragment(fragment)
                 .Build();
@@ -41,7 +41,7 @@ namespace System.Chase.Tests.Unit
             var fragment = "frag";
             var root = "http://example.com";
             var builder = new FluentUriBuilder(root);
-            
+
             // execute
             var result = builder.Fragment(fragment)
                 .Port(expectedPort)

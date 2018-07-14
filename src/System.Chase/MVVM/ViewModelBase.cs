@@ -10,7 +10,9 @@ namespace System.Chase.Mvvm
     {
         private static readonly Guid _defaultTracker = new Guid("A9614032-C10A-4D6A-9D82-4987F638F718");
         private readonly IList<Guid> _busyLocks = new List<Guid>();
-
+        private bool _suppressChangeNotifications;
+        private readonly IList<string> _suppressedChangedProperties = new List<string>();
+        
         public bool IsBusy
         {
             get => _busyLocks.Any();
@@ -32,9 +34,20 @@ namespace System.Chase.Mvvm
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected BusyHelper Busy(int delayInMs = 0) => new BusyHelper(this, delayInMs);
+        public IDisposable Busy(int delayInMs = 0) => new BusyHelper(this, delayInMs);
+        
+        public IDisposable SuppressChangeNotifications() => new SuppressChangeHelper(this);
 
-        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        protected void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            if (_suppressChangeNotifications) 
+            {
+                _suppressedChangedProperties.Add(propertyName);
+                return;
+            }
+
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
 
         /// <summary>
         ///     Checks if a property already matches a desired value. Sets the property and
@@ -55,7 +68,7 @@ namespace System.Chase.Mvvm
         /// <remarks>
         ///     Taken from Prism <see href="https://github.com/PrismLibrary/Prism" />
         /// </remarks>
-        protected virtual bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
+        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
         {
             if (EqualityComparer<T>.Default.Equals(storage, value)) return false;
 
@@ -85,7 +98,7 @@ namespace System.Chase.Mvvm
         /// <remarks>
         ///     Taken from Prism <see href="https://github.com/PrismLibrary/Prism" />
         /// </remarks>
-        protected virtual bool SetProperty<T>(ref T storage, T value, Action onChanged, [CallerMemberName] string propertyName = null)
+        protected bool SetProperty<T>(ref T storage, T value, Action onChanged, [CallerMemberName] string propertyName = null)
         {
             if (EqualityComparer<T>.Default.Equals(storage, value)) return false;
 
@@ -95,8 +108,27 @@ namespace System.Chase.Mvvm
 
             return true;
         }
+        
+        private sealed class SuppressChangeHelper : IDisposable
+        {
+            private readonly ViewModelBase _viewModel;
+            
+            internal SuppressChangeHelper(ViewModelBase viewModel)
+            {
+                _viewModel = viewModel;
+                _viewModel._suppressChangeNotifications = true;
+            }
 
-        protected sealed class BusyHelper : IDisposable
+            public void Dispose()
+            {
+                _viewModel._suppressChangeNotifications = false;
+                var distinct = _viewModel._suppressedChangedProperties.Distinct().ToList();
+                for(var i = 0; i < distinct.Count; i++)
+                    _viewModel.RaisePropertyChanged(distinct[i]);
+            }
+        }
+
+        private sealed class BusyHelper : IDisposable
         {
             private readonly int _delayInMs;
             private readonly ViewModelBase _viewModel;
