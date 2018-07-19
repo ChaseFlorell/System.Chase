@@ -6,13 +6,14 @@ using System.Threading.Tasks;
 
 namespace System.Chase.Mvvm
 {
-    public class ViewModelBase : INotifyPropertyChanged
+    public class ObservableObject : INotifyPropertyChanged
     {
         private static readonly Guid _defaultTracker = new Guid("A9614032-C10A-4D6A-9D82-4987F638F718");
         private readonly IList<Guid> _busyLocks = new List<Guid>();
         private bool _suppressChangeNotifications;
         private readonly IList<string> _suppressedChangedProperties = new List<string>();
-        
+
+        public bool IsNotBusy => !IsBusy;
         public bool IsBusy
         {
             get => _busyLocks.Any();
@@ -22,12 +23,14 @@ namespace System.Chase.Mvvm
                 {
                     _busyLocks.Add(_defaultTracker);
                     RaisePropertyChanged(nameof(IsBusy));
+                    RaisePropertyChanged(nameof(IsNotBusy));
                 }
 
                 if (!value && _busyLocks.Contains(_defaultTracker))
                 {
                     _busyLocks.Remove(_defaultTracker);
                     RaisePropertyChanged(nameof(IsBusy));
+                    RaisePropertyChanged(nameof(IsNotBusy));
                 }
             }
         }
@@ -111,9 +114,9 @@ namespace System.Chase.Mvvm
         
         private sealed class SuppressChangeHelper : IDisposable
         {
-            private readonly ViewModelBase _viewModel;
+            private readonly ObservableObject _viewModel;
             
-            internal SuppressChangeHelper(ViewModelBase viewModel)
+            internal SuppressChangeHelper(ObservableObject viewModel)
             {
                 _viewModel = viewModel;
                 _viewModel._suppressChangeNotifications = true;
@@ -131,11 +134,11 @@ namespace System.Chase.Mvvm
         private sealed class BusyHelper : IDisposable
         {
             private readonly int _delayInMs;
-            private readonly ViewModelBase _viewModel;
+            private readonly ObservableObject _viewModel;
             private bool _delayed;
             private Guid _tracker;
 
-            internal BusyHelper(ViewModelBase viewModel, int delayInMs)
+            internal BusyHelper(ObservableObject viewModel, int delayInMs)
             {
                 _viewModel = viewModel;
                 if (delayInMs <= 0)

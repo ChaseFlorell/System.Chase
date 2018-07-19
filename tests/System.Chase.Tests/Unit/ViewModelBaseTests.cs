@@ -5,7 +5,7 @@ using NUnit.Framework;
 
 namespace System.Chase.Tests.Unit
 {
-    internal class TestViewModel : ViewModelBase
+    internal class TestViewModel : ObservableObject
     {
         private string _name;
         public string Name
@@ -16,7 +16,7 @@ namespace System.Chase.Tests.Unit
     }
     
     [TestFixture]
-    public class ViewModelBaseTests
+    public class ObservableObjectTests
     {
         
         [Test]
@@ -53,10 +53,13 @@ namespace System.Chase.Tests.Unit
             // the default/old way
             var vm = new TestViewModel();
             vm.IsBusy.Should().BeFalse();
+            vm.IsNotBusy.Should().BeTrue();
             vm.IsBusy = true;
             vm.IsBusy.Should().BeTrue();
+            vm.IsNotBusy.Should().BeFalse();
             vm.IsBusy = false;
             vm.IsBusy.Should().BeFalse();
+            vm.IsNotBusy.Should().BeTrue();
         }
 
         [Test]
@@ -64,55 +67,82 @@ namespace System.Chase.Tests.Unit
         {
             var vm = new TestViewModel();
             vm.IsBusy.Should().BeFalse();
+            vm.IsNotBusy.Should().BeTrue();
 
             using (vm.Busy())
             {
                 vm.IsBusy.Should().BeTrue();
+                vm.IsNotBusy.Should().BeFalse();
                 using (vm.Busy())
                 {
                     vm.IsBusy.Should().BeTrue();
+                    vm.IsNotBusy.Should().BeFalse();
                 }
                 vm.IsBusy.Should().BeTrue();
+                vm.IsNotBusy.Should().BeFalse();
             }
-            
-            vm.IsBusy.Should().Be(false);
+
+            vm.IsBusy.Should().BeFalse();
+            vm.IsNotBusy.Should().BeTrue();
         }
 
         [Test]
-        public void ShouldManageMultipleBusyWithDirectSetAsWell()
+        public void ShouldManageMultipleBusyWithDirectSetAndOnlyRaiseTwoPropertyChanges()
         {
+            var raiseCount = 0;
+            const int expectedRaiseCount = 2; // one for busy and one for not busy
+            
             var vm = new TestViewModel();
-            vm.IsBusy.Should().BeFalse();
-            vm.IsBusy = true;
-            vm.IsBusy.Should().BeTrue();
-            using (vm.Busy())
+            vm.PropertyChanged += (sender, args) => raiseCount++;
+            
+            using (vm.SuppressChangeNotifications())
             {
+                vm.IsBusy.Should().BeFalse();
+                vm.IsNotBusy.Should().BeTrue();
+                vm.IsBusy = true;
                 vm.IsBusy.Should().BeTrue();
+                vm.IsNotBusy.Should().BeFalse();
                 using (vm.Busy())
                 {
                     vm.IsBusy.Should().BeTrue();
+                    vm.IsNotBusy.Should().BeFalse();
                     using (vm.Busy())
                     {
                         vm.IsBusy.Should().BeTrue();
+                        vm.IsNotBusy.Should().BeFalse();
                         using (vm.Busy())
                         {
-                            vm.IsBusy = false;
                             vm.IsBusy.Should().BeTrue();
+                            vm.IsNotBusy.Should().BeFalse();
                             using (vm.Busy())
                             {
+                                vm.IsBusy = false;
                                 vm.IsBusy.Should().BeTrue();
+                                vm.IsNotBusy.Should().BeFalse();
+                                using (vm.Busy())
+                                {
+                                    vm.IsBusy.Should().BeTrue();
+                                    vm.IsNotBusy.Should().BeFalse();
+                                }
                             }
                         }
                     }
+
+                    vm.IsBusy.Should().BeTrue();
+                    vm.IsNotBusy.Should().BeFalse();
                 }
+
+                vm.IsBusy.Should().BeFalse();
+                vm.IsNotBusy.Should().BeTrue();
+                vm.IsBusy = true;
                 vm.IsBusy.Should().BeTrue();
+                vm.IsNotBusy.Should().BeFalse();
+                vm.IsBusy = false;
+                vm.IsBusy.Should().BeFalse();
+                vm.IsNotBusy.Should().BeTrue();
             }
 
-            vm.IsBusy.Should().BeFalse();
-            vm.IsBusy = true;
-            vm.IsBusy.Should().BeTrue();
-            vm.IsBusy = false;
-            vm.IsBusy.Should().BeFalse();
+            raiseCount.Should().Be(expectedRaiseCount);
         }
 
         [Test]
@@ -122,6 +152,7 @@ namespace System.Chase.Tests.Unit
             const int longDelay = 2000;
             var vm = new TestViewModel();
             vm.IsBusy.Should().BeFalse();
+            vm.IsNotBusy.Should().BeTrue();
             Task.Run(async () =>
             {
                 using (vm.Busy())
@@ -137,11 +168,13 @@ namespace System.Chase.Tests.Unit
                 using (vm.Busy())
                 {
                     vm.IsBusy.Should().BeTrue();
+                    vm.IsNotBusy.Should().BeFalse();
                     await Task.Delay(longDelay);
                 }
                 vm.IsBusy.Should().BeFalse();
             });
             vm.IsBusy.Should().BeFalse();
+            vm.IsNotBusy.Should().BeTrue();
         }
     }
 }
