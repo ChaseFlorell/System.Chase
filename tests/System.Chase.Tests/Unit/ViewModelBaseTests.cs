@@ -1,4 +1,3 @@
-using System.Chase.Mvvm;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;

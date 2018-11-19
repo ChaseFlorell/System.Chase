@@ -1,10 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Chase.Internal;
+using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Chase.Internal;
 
-namespace System.Chase.Commands
+namespace System.Chase
 {
-    public abstract class CommandBase : ICommand
+    public abstract class SimpleCommand : ICommand
     {
         public abstract bool CanExecute(object parameter);
         public event EventHandler CanExecuteChanged;

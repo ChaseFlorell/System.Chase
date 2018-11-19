@@ -1,4 +1,3 @@
-using System.Chase.Collections;
 using System.Chase.Tests.Fixtures;
 using System.Collections.Generic;
 using System.Linq;

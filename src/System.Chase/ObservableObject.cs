@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System.Chase.Internal;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Chase.Internal;
 
-namespace System.Chase.Mvvm
+namespace System.Chase
 {
     public class ObservableObject : INotifyPropertyChanged
     {

@@ -4,7 +4,7 @@ using System.Reflection;
 
 // ReSharper disable PossibleNullReferenceException
 
-namespace System.Chase.Collections
+namespace System.Chase
 {   
     public class Enumeration : IComparable
     {

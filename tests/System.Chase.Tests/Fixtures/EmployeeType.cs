@@ -1,5 +1,3 @@
-using System.Chase.Collections;
-
 namespace System.Chase.Tests.Fixtures
 {
     public class EmployeeType : Enumeration
