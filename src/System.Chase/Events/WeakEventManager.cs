@@ -70,9 +70,9 @@ namespace System.Chase.Events
         }
 
         public void RemoveEventHandler<TEventArgs>(string eventName, EventHandler<TEventArgs> value)
-            where TEventArgs : EventArgs => RemoveEventHandlerImpl(eventName, value.Target, value.GetMethodInfo());
+            where TEventArgs : EventArgs => RemoveEventHandlerInternal(eventName, value.Target, value.GetMethodInfo());
 
-        public void RemoveEventHandler(string eventName, EventHandler value) => RemoveEventHandlerImpl(eventName, value.Target, value.GetMethodInfo());
+        public void RemoveEventHandler(string eventName, EventHandler value) => RemoveEventHandlerInternal(eventName, value.Target, value.GetMethodInfo());
 
         private void BuildEventHandler(string eventName, object handlerTarget, MethodInfo methodInfo)
         {
@@ -88,7 +88,7 @@ namespace System.Chase.Events
             }
         }
 
-        private void RemoveEventHandlerImpl(string eventName, object handlerTarget, MemberInfo methodInfo)
+        private void RemoveEventHandlerInternal(string eventName, object handlerTarget, MemberInfo methodInfo)
         {
             lock (_syncObj)
             {

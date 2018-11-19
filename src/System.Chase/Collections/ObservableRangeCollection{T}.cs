@@ -8,8 +8,8 @@ namespace System.Chase.Collections
 {
     public class ObservableRangeCollection<T> : ObservableCollection<T>
     {
-        private const string CountPropertyKey = "Count";
-        private const string ItemIndexPropertyKey = "Item[]";
+        private const string _countPropertyKey = "Count";
+        private const string _itemIndexPropertyKey = "Item[]";
 
         public ObservableRangeCollection() { }
         
@@ -66,8 +66,8 @@ namespace System.Chase.Collections
 
         private void RaiseChanged(NotifyCollectionChangedAction action)
         {
-            OnPropertyChanged(new PropertyChangedEventArgs(CountPropertyKey));
-            OnPropertyChanged(new PropertyChangedEventArgs(ItemIndexPropertyKey));
+            OnPropertyChanged(new PropertyChangedEventArgs(_countPropertyKey));
+            OnPropertyChanged(new PropertyChangedEventArgs(_itemIndexPropertyKey));
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(action));
         }
     }

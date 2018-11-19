@@ -11,7 +11,7 @@ namespace System.Chase.Mvvm
         private static readonly Guid _defaultTracker = new Guid("A9614032-C10A-4D6A-9D82-4987F638F718");
         private readonly IList<Guid> _busyLocks = new List<Guid>();
         private bool _suppressChangeNotifications;
-        private readonly IList<string> _suppressedChangedProperties = new List<string>();
+        private readonly HashSet<string> _suppressedChangedProperties = new HashSet<string>();
 
         public bool IsNotBusy => !IsBusy;
         public bool IsBusy
@@ -115,6 +115,7 @@ namespace System.Chase.Mvvm
         private sealed class SuppressChangeHelper : IDisposable
         {
             private readonly ObservableObject _viewModel;
+            private static readonly object _lock = new object();
             
             internal SuppressChangeHelper(ObservableObject viewModel)
             {
@@ -124,10 +125,15 @@ namespace System.Chase.Mvvm
 
             public void Dispose()
             {
-                _viewModel._suppressChangeNotifications = false;
-                var distinct = _viewModel._suppressedChangedProperties.Distinct().ToList();
-                for(var i = 0; i < distinct.Count; i++)
-                    _viewModel.RaisePropertyChanged(distinct[i]);
+                lock (_lock)
+                {
+                    _viewModel._suppressChangeNotifications = false;
+                
+                    foreach (var property in _viewModel._suppressedChangedProperties)
+                        _viewModel.RaisePropertyChanged(property);
+                
+                    _viewModel._suppressedChangedProperties.Clear();
+                }
             }
         }
 
