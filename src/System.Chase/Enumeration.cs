@@ -46,9 +46,15 @@ namespace System.Chase
         public static bool operator == (Enumeration left, int right) => left.Value == right;
 
         public static bool operator != (Enumeration left, int right) => left.Value != right;
-        
-        public static implicit operator Enumeration(KeyValuePair<int,string> item) => new Enumeration(item.Key, item.Value);
 
+        public static bool operator == (string left, Enumeration right) => left == right.DisplayName;
+
+        public static bool operator != (string left, Enumeration right) => left != right.DisplayName;
+
+        public static bool operator == (Enumeration left, string right) => left.DisplayName == right;
+
+        public static bool operator != (Enumeration left, string right) => left.DisplayName != right;
+        
         public static IEnumerable<TEnumeration> GetAll<TEnumeration>() where TEnumeration : Enumeration, new()
         {
             var type = typeof(TEnumeration);

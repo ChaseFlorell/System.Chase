@@ -60,6 +60,32 @@ namespace System.Chase.Tests.Unit
         }
 
         [Test]
+        public void ShouldTestEqualityWhereRightIsString()
+        {
+            // setup
+            var emp1 = EmployeeType.RegionalManager;
+            var emp2 = "Regional Manager";
+            
+            // execute
+            var result = emp1 == emp2;
+            // assert
+            result.Should().BeTrue();
+        }
+
+        [Test]
+        public void ShouldTestInequalityWhereRightIsString()
+        {
+            // setup
+            var emp1 = EmployeeType.RegionalManager;
+            var emp2 = "Assistant to the Regional Manager";
+            
+            // execute
+            var result = emp1 == emp2;
+            // assert
+            result.Should().BeFalse();
+        }
+
+        [Test]
         public void ShouldTestEqualityWhereLeftIsInt()
         {
             // setup
@@ -86,20 +112,29 @@ namespace System.Chase.Tests.Unit
         }
 
         [Test]
-        public void ShouldCastKeyValuePairToEnumeration()
+        public void ShouldTestEqualityWhereLeftIsString()
         {
             // setup
-            var value = EmployeeType.RegionalManager.Value;
-            var displayName = EmployeeType.RegionalManager.DisplayName;
-            var item = new KeyValuePair<int, string>(value,displayName);
-            var enumeration = EmployeeType.RegionalManager;
+            var emp1 = "Regional Manager";
+            var emp2 = EmployeeType.RegionalManager;
             
             // execute
-            var cast = (Enumeration) item;
-            
+            var result = emp1 == emp2;
             // assert
-            cast.Value.Should().Be(enumeration.Value);
-            cast.DisplayName.Should().Be(enumeration.DisplayName);
+            result.Should().BeTrue();
+        }
+
+        [Test]
+        public void ShouldTestInequalityWhereLeftsString()
+        {
+            // setup
+            var emp1 = "Assistant to the Regional Manager";
+            var emp2 = EmployeeType.RegionalManager;
+            
+            // execute
+            var result = emp1 == emp2;
+            // assert
+            result.Should().BeFalse();
         }
 
         [Test]
