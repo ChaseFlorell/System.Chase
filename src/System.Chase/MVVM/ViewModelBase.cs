@@ -217,6 +217,7 @@ namespace System.Chase.Mvvm
                     _tracker = new Guid();
                     _viewModel._busyLocks.Add(_tracker);
                     _viewModel.RaisePropertyChanged(nameof(IsBusy));
+                    _viewModel.RaisePropertyChanged(nameof(IsNotBusy));
                 }
             }
 
@@ -225,6 +226,7 @@ namespace System.Chase.Mvvm
                 while (_delayed) await Task.Delay(_delayInMs).ConfigureAwait(false);
                 _viewModel._busyLocks.Remove(_tracker);
                 _viewModel.RaisePropertyChanged(nameof(IsBusy));
+                _viewModel.RaisePropertyChanged(nameof(IsNotBusy));
             }
         }
     }
