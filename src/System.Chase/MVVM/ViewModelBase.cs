@@ -103,13 +103,9 @@ namespace System.Chase.Mvvm
         /// </remarks>
         protected bool SetProperty<T>(ref T storage, T value, Action onChanged, [CallerMemberName] string propertyName = null)
         {
-            if (EqualityComparer<T>.Default.Equals(storage, value)) return false;
-
-            storage = value;
+            var result = SetProperty(ref storage, value, propertyName);
             onChanged?.Invoke();
-            RaisePropertyChanged(propertyName);
-
-            return true;
+            return result;
         }
         
         /// <summary>

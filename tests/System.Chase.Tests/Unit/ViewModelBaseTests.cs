@@ -56,6 +56,9 @@ namespace System.Chase.Tests.Unit
             vm.IsBusy = true;
             vm.IsBusy.Should().BeTrue();
             vm.IsNotBusy.Should().BeFalse();
+            vm.IsBusy = true;
+            vm.IsBusy.Should().BeTrue();
+            vm.IsNotBusy.Should().BeFalse();
             vm.IsBusy = false;
             vm.IsBusy.Should().BeFalse();
             vm.IsNotBusy.Should().BeTrue();
@@ -64,10 +67,15 @@ namespace System.Chase.Tests.Unit
         [Test]
         public void ShouldManageMultipleBusy()
         {
+            const int expectedChangeCount = 2; // one for IsBusy and one for IsNotBusy
+            var propertyChangedCount = 0;
             var vm = new TestViewModel();
+            vm.PropertyChanged += (sender, args) => propertyChangedCount++;
+            
             vm.IsBusy.Should().BeFalse();
             vm.IsNotBusy.Should().BeTrue();
 
+            using (vm.SuppressChangeNotifications())
             using (vm.Busy())
             {
                 vm.IsBusy.Should().BeTrue();
@@ -83,6 +91,7 @@ namespace System.Chase.Tests.Unit
 
             vm.IsBusy.Should().BeFalse();
             vm.IsNotBusy.Should().BeTrue();
+            propertyChangedCount.Should().Be(expectedChangeCount);
         }
 
         [Test]
