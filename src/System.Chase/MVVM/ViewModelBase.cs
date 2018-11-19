@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Chase.Internal;
 
 namespace System.Chase.Mvvm
 {
@@ -37,9 +38,11 @@ namespace System.Chase.Mvvm
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public IDisposable Busy(int delayInMs = 0) => new BusyHelper(this, delayInMs);
+        public IDisposable Busy(int delayInMs = 0) 
+            => new BusyHelper(this, delayInMs);
         
-        public IDisposable SuppressChangeNotifications() => new SuppressChangeHelper(this);
+        public IDisposable SuppressChangeNotifications() 
+            => new SuppressChangeHelper(this);
 
         protected void RaisePropertyChanged([CallerMemberName] string propertyName = null)
         {
@@ -118,7 +121,8 @@ namespace System.Chase.Mvvm
         ///     Wrap your potentially volatile calls with RunSafe to have any exceptions automagically handled for you
         /// </summary>
         /// <param name="action">Action to run</param>
-        protected void RunSafe(Action action) => RunSafe(action, OnError);
+        protected void RunSafe(Action action) 
+            => RunSafe(action, OnError);
 
         /// <summary>
         ///     Wrap your potentially volatile calls with RunSafe to have any exceptions automagically handled for you
@@ -126,13 +130,14 @@ namespace System.Chase.Mvvm
         /// <param name="action">Action to run</param>
         /// <param name="handleErrorAction">(optional) Custom Action to invoke with the thrown Exception</param>
         protected void RunSafe(Action action, Action<Exception> handleErrorAction) 
-            => Internal.RunSafe.RunSafeImpl(action, handleErrorAction);
+            => RunSafeHelper.RunSafeImpl(action, handleErrorAction);
 
         /// <summary>
         ///     Wrap your potentially volatile calls with RunSafeAsync to have any exceptions automagically handled for you
         /// </summary>
         /// <param name="task">Task to run</param>
-        protected Task RunSafeAsync(Func<Task> task) => RunSafeAsync(task, OnError);
+        protected Task RunSafeAsync(Func<Task> task) 
+            => RunSafeAsync(task, OnError);
 
         /// <summary>
         ///     Wrap your potentially volatile calls with RunSafeAsync to have any exceptions automagically handled for you
@@ -140,14 +145,15 @@ namespace System.Chase.Mvvm
         /// <param name="task">Task to run</param>
         /// <param name="handleErrorAction">(optional) Custom Action to invoke with the thrown Exception</param>
         protected Task RunSafeAsync(Func<Task> task, Action<Exception> handleErrorAction) 
-            => Internal.RunSafe.RunSafeImplAsync(task, handleErrorAction);
+            => RunSafeHelper.RunSafeImplAsync(task, handleErrorAction);
 
         /// <summary>
         ///     Wrap your potentially volatile calls with RunSafeAsync to have any exceptions automagically handled for you
         /// </summary>
         /// <typeparam name="T">Type of the returned object</typeparam>
         /// <param name="task">Task to run</param>
-        protected Task<T> RunSafeAsync<T>(Func<Task<T>> task) => RunSafeAsync(task, OnError);
+        protected Task<T> RunSafeAsync<T>(Func<Task<T>> task) 
+            => RunSafeAsync(task, OnError);
 
         /// <summary>
         ///     Wrap your potentially volatile calls with RunSafeAsync to have any exceptions automagically handled for you
@@ -156,7 +162,7 @@ namespace System.Chase.Mvvm
         /// <param name="task">Task to run</param>
         /// <param name="handleErrorAction">(optional) Custom Action to invoke with the thrown Exception</param>
         protected Task<T> RunSafeAsync<T>(Func<Task<T>> task, Action<Exception> handleErrorAction) 
-            => Internal.RunSafe.RunSafeImplAsync(task, handleErrorAction);
+            => RunSafeHelper.RunSafeImplAsync(task, handleErrorAction);
         
         private sealed class SuppressChangeHelper : IDisposable
         {

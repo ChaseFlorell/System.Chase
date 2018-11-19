@@ -2,7 +2,7 @@
 
 namespace System.Chase.Internal
 {
-    internal static class RunSafe
+    internal static class RunSafeHelper
     {
         internal static async Task<T> RunSafeImplAsync<T>(Func<Task<T>> task, Action<Exception> handleErrorAction)
         {
