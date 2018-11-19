@@ -102,5 +102,4 @@ namespace System.Chase.Events
             }
         }
     }
-
 }

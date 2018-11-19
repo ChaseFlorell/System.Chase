@@ -18,33 +18,32 @@ namespace System.Chase.Tests.Unit
     [TestFixture]
     public class ObservableObjectTests
     {
-        
         [Test]
         public void ShouldCallPropertyChangedOnlyOnce()
         {
             // setup
+            var propertyChangedCount = 0;
             var vm = new TestViewModel();
+            vm.PropertyChanged += (sender, args) => propertyChangedCount++;
+            
             const int loopCount = 100;
             const int expectedRaiseCount = 1;
             const string nameFormat = "Name {0}";
-            var numberOfTimesNameIsChanged = 0;
-            var raiseCount = 0;
-            vm.PropertyChanged += (sender, args) => raiseCount++;
+            var actualNumberOfChanges = 0;
         
             // execute
             using (vm.SuppressChangeNotifications())
+            for (var index = 1; index <= loopCount; index++)
             {
-                for (var i = 1; i <= loopCount; i++)
-                {
-                    vm.Name = string.Format(nameFormat, i);
-                    numberOfTimesNameIsChanged++;
-                }
+                vm.Name = string.Format(nameFormat, index);
+                actualNumberOfChanges = index;
             }
+            
         
             // assert
             vm.Name.Should().Be(string.Format(nameFormat, loopCount));
-            raiseCount.Should().Be(expectedRaiseCount);
-            numberOfTimesNameIsChanged.Should().Be(loopCount);
+            propertyChangedCount.Should().Be(expectedRaiseCount);
+            actualNumberOfChanges.Should().Be(loopCount);
         }
         
         [Test]
@@ -89,11 +88,11 @@ namespace System.Chase.Tests.Unit
         [Test]
         public void ShouldManageMultipleBusyWithDirectSetAndOnlyRaiseTwoPropertyChanges()
         {
-            var raiseCount = 0;
+            var propertyChangedCount = 0;
             const int expectedRaiseCount = 2; // one for busy and one for not busy
             
             var vm = new TestViewModel();
-            vm.PropertyChanged += (sender, args) => raiseCount++;
+            vm.PropertyChanged += (sender, args) => propertyChangedCount++;
             
             using (vm.SuppressChangeNotifications())
             {
@@ -142,7 +141,7 @@ namespace System.Chase.Tests.Unit
                 vm.IsNotBusy.Should().BeTrue();
             }
 
-            raiseCount.Should().Be(expectedRaiseCount);
+            propertyChangedCount.Should().Be(expectedRaiseCount);
         }
 
         [Test]

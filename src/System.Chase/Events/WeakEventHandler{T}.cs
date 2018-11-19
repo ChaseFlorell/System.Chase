@@ -23,5 +23,4 @@ namespace System.Chase.Events
             callback?.Invoke(sender, e);
         }
     }
-
 }

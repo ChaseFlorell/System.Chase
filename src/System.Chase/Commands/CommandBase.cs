@@ -27,17 +27,8 @@ namespace System.Chase.Commands
         /// </summary>
         /// <param name="action">Action to run</param>
         /// <param name="handleErrorAction">(optional) Custom Action to invoke with the thrown Exception</param>
-        protected void RunSafe(Action action, Action<Exception> handleErrorAction)
-        {
-            try
-            {
-                action.Invoke();
-            }
-            catch (Exception ex)
-            {
-                handleErrorAction?.Invoke(ex);
-            }
-        }
+        protected void RunSafe(Action action, Action<Exception> handleErrorAction) 
+            => Internal.RunSafe.RunSafeImpl(action, handleErrorAction);
 
         /// <summary>
         ///     Wrap your potentially volatile calls with RunSafeAsync to have any exceptions automagically handled for you
@@ -50,17 +41,8 @@ namespace System.Chase.Commands
         /// </summary>
         /// <param name="task">Task to run</param>
         /// <param name="handleErrorAction">(optional) Custom Action to invoke with the thrown Exception</param>
-        protected async Task RunSafeAsync(Func<Task> task, Action<Exception> handleErrorAction)
-        {
-            try
-            {
-                await task().ConfigureAwait(true);
-            }
-            catch (Exception ex)
-            {
-                handleErrorAction?.Invoke(ex);
-            }
-        }
+        protected Task RunSafeAsync(Func<Task> task, Action<Exception> handleErrorAction) 
+            => Internal.RunSafe.RunSafeImplAsync(task, handleErrorAction);
 
         /// <summary>
         ///     Wrap your potentially volatile calls with RunSafeAsync to have any exceptions automagically handled for you
@@ -75,20 +57,7 @@ namespace System.Chase.Commands
         /// <typeparam name="T">Type of the returned object</typeparam>
         /// <param name="task">Task to run</param>
         /// <param name="handleErrorAction">(optional) Custom Action to invoke with the thrown Exception</param>
-        protected async Task<T> RunSafeAsync<T>(Func<Task<T>> task, Action<Exception> handleErrorAction)
-        {
-            try
-            {
-                // if you don't await this, the call will never 
-                // have a chance to fail into the catch.
-                return await task().ConfigureAwait(true);
-            }
-            catch (Exception ex)
-            {
-                handleErrorAction?.Invoke(ex);
-            }
-
-            return default(T);
-        }
+        protected Task<T> RunSafeAsync<T>(Func<Task<T>> task, Action<Exception> handleErrorAction) 
+            => Internal.RunSafe.RunSafeImplAsync(task, handleErrorAction);
     }
 }
