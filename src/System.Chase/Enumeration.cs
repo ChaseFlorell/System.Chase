@@ -1,3 +1,4 @@
+using System.Chase.Internal;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -62,7 +63,7 @@ namespace System.Chase
 
             foreach (var info in fields)
             {
-                var instance = Construct<TEnumeration>(null, null);
+                var instance = ClassConstructionHelper.Construct<TEnumeration>(null, null);
 
                 if (info.GetValue(instance) is TEnumeration locatedValue)
                 {
@@ -77,7 +78,8 @@ namespace System.Chase
         public static TEnumeration FromDisplayName<TEnumeration>(string displayName) where TEnumeration : Enumeration
             => ParseInternal<TEnumeration, string>(displayName, "display name", item => item.DisplayName == displayName);
 
-        public int CompareTo(object other) => Value.CompareTo(((Enumeration)other).Value);
+        public int CompareTo(object other) 
+            => Value.CompareTo(((Enumeration)other).Value);
 
         public static TEnumeration FromValueOrDefault<TEnumeration>(int value, int defaultValue) where TEnumeration : Enumeration
         {
@@ -93,7 +95,7 @@ namespace System.Chase
 
             var types = new[] {typeof(int), typeof(string)};
             var values = new object[] {defaultValue, null};
-            enumeration = Construct<TEnumeration>(types, values);
+            enumeration = ClassConstructionHelper.Construct<TEnumeration>(types, values);
             return false;
         }        
         
@@ -103,7 +105,7 @@ namespace System.Chase
 
             if (!(enumeration is null)) return true;
             
-            enumeration = Construct<TEnumeration>(null,null);
+            enumeration = ClassConstructionHelper.Construct<TEnumeration>(null,null);
             return false;
         }
 
@@ -121,24 +123,6 @@ namespace System.Chase
                 return enumeration;
 
             throw new ArgumentException($"Failed to parse {typeof(TEnumeration)} because '{value}' is not a valid {description}");
-        }
-        
-        private static T Construct<T>(Type[] paramTypes, object[] paramValues)
-        {
-            paramTypes = paramTypes ?? new Type[0];
-            var constructor = typeof(T).GetConstructor(
-                BindingFlags.Instance | BindingFlags.NonPublic,
-                null, 
-                paramTypes, 
-                null);
-
-            if (!(constructor is null)) return (T) constructor.Invoke(paramValues);
-            
-            var errorMessage = paramTypes.Any() 
-                ? $"{typeof(T).FullName} must have a non-public constructor `{typeof(T).Name}({string.Join(", ", paramTypes.Select(p => p.Name))})`" 
-                : $"{typeof(T).FullName} must have an empty non-public constructor";
-                
-            throw new Exception(errorMessage);
         }
     }
 }
