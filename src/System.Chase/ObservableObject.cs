@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 
 namespace System.Chase
 {
-    public class ObservableObject : INotifyPropertyChanged
+    public class ObservableObject : SafeMethodRunner, INotifyPropertyChanged
     {
         private static readonly Guid _defaultTracker = new Guid("A9614032-C10A-4D6A-9D82-4987F638F718");
         internal readonly HashSet<string> SuppressedChangedProperties = new HashSet<string>();
@@ -44,19 +43,20 @@ namespace System.Chase
             }
         }
 
+        /// <inheritdoc />
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Toggle <see cref="IsBusy"/> and ensure it's set for the duration of the using.
         /// </summary>
-        /// <param name="delayInMs">how long should the system delay before toggling <see cref="IsBusy"/></param>
+        /// <param name="delayInMs">how long should the system delay before toggling <see cref="IsBusy"/> to <c>true</c></param>
         public IDisposable Busy(int delayInMs = 0) 
             => new BusyHelper(this, delayInMs);
         
         /// <summary>
         /// Caches all <see cref="INotifyPropertyChanged"/> notifications for the duration of the using, and raises them all at the end.
         /// </summary>
-        /// <remarks>The cache uses a <see cref="HashSet{T}"/> in order to keep all changed properties unique.</remarks>
+        /// <remarks>The cache uses a <see cref="HashSet{T}"/> in order to keep all changed properties unique and only raising each one once</remarks>
         public IDisposable SuppressChangeNotifications() 
             => new SuppressChangeHelper(this);
 
@@ -130,58 +130,5 @@ namespace System.Chase
             onChanged?.Invoke();
             return result;
         }
-        
-        /// <summary>
-        ///     Implement this if you wish to do something with your exceptions.
-        /// </summary>
-        /// <param name="ex">The thrown exception</param>
-        protected virtual void OnError(Exception ex) { }
-
-        /// <summary>
-        ///     Wrap your potentially volatile calls with RunSafe to have any exceptions automagically handled for you
-        /// </summary>
-        /// <param name="action">Action to run</param>
-        protected void RunSafe(Action action) 
-            => RunSafe(action, OnError);
-
-        /// <summary>
-        ///     Wrap your potentially volatile calls with RunSafe to have any exceptions automagically handled for you
-        /// </summary>
-        /// <param name="action">Action to run</param>
-        /// <param name="handleErrorAction">(optional) Custom Action to invoke with the thrown Exception</param>
-        protected void RunSafe(Action action, Action<Exception> handleErrorAction) 
-            => RunSafeHelper.RunSafeImpl(action, handleErrorAction);
-
-        /// <summary>
-        ///     Wrap your potentially volatile calls with RunSafeAsync to have any exceptions automagically handled for you
-        /// </summary>
-        /// <param name="task">Task to run</param>
-        protected Task RunSafeAsync(Func<Task> task) 
-            => RunSafeAsync(task, OnError);
-
-        /// <summary>
-        ///     Wrap your potentially volatile calls with RunSafeAsync to have any exceptions automagically handled for you
-        /// </summary>
-        /// <param name="task">Task to run</param>
-        /// <param name="handleErrorAction">(optional) Custom Action to invoke with the thrown Exception</param>
-        protected Task RunSafeAsync(Func<Task> task, Action<Exception> handleErrorAction) 
-            => RunSafeHelper.RunSafeImplAsync(task, handleErrorAction);
-
-        /// <summary>
-        ///     Wrap your potentially volatile calls with RunSafeAsync to have any exceptions automagically handled for you
-        /// </summary>
-        /// <typeparam name="T">Type of the returned object</typeparam>
-        /// <param name="task">Task to run</param>
-        protected Task<T> RunSafeAsync<T>(Func<Task<T>> task) 
-            => RunSafeAsync(task, OnError);
-
-        /// <summary>
-        ///     Wrap your potentially volatile calls with RunSafeAsync to have any exceptions automagically handled for you
-        /// </summary>
-        /// <typeparam name="T">Type of the returned object</typeparam>
-        /// <param name="task">Task to run</param>
-        /// <param name="handleErrorAction">(optional) Custom Action to invoke with the thrown Exception</param>
-        protected Task<T> RunSafeAsync<T>(Func<Task<T>> task, Action<Exception> handleErrorAction) 
-            => RunSafeHelper.RunSafeImplAsync(task, handleErrorAction);
     }
 }
