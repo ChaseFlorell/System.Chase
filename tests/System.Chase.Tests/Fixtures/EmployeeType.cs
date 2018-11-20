@@ -9,7 +9,7 @@ namespace System.Chase.Tests.Fixtures
         public static readonly EmployeeType Sales =                         new EmployeeType(1<<1, "Sales");
         public static readonly EmployeeType AssistantToTheRegionalManager = new EmployeeType(1<<2, "Assistant to the Regional Manager");
         
-        public static implicit operator EmployeeType(int value) => FromValueOrDefault<EmployeeType>(value);
-        public static implicit operator EmployeeType(string displayName) => FromDisplayNameOrDefault<EmployeeType>(displayName);
+        public static implicit operator EmployeeType(int value) => FromValueOrDefault<EmployeeType>(value, value);
+        public static implicit operator EmployeeType(string displayName) => FromDisplayName<EmployeeType>(displayName);
     }
 }

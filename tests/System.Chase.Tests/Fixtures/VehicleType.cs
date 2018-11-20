@@ -10,7 +10,7 @@ namespace System.Chase.Tests.Fixtures
         public static readonly VehicleType Truck = new VehicleType(2, "Truck");
         public static readonly VehicleType Motorcycle = new VehicleType(3, "Motorcycle");
         
-        public static implicit operator VehicleType(int value) => FromValueOrDefault<VehicleType>(value);
-        public static implicit operator VehicleType(string displayName) => FromDisplayNameOrDefault<VehicleType>(displayName);
+        public static implicit operator VehicleType(int value) => FromValueOrDefault<VehicleType>(value, value);
+        public static implicit operator VehicleType(string displayName) => FromDisplayName<VehicleType>(displayName);
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 // ReSharper disable PossibleNullReferenceException
@@ -79,18 +80,24 @@ namespace System.Chase
 
         public int CompareTo(object other) => Value.CompareTo(((Enumeration)other).Value);
 
-        public static TEnumeration FromValueOrDefault<TEnumeration>(int value) where TEnumeration : Enumeration, new()
+        public static TEnumeration FromValueOrDefault<TEnumeration>(int value, int defaultValue) where TEnumeration : Enumeration, new()
         {
-            TryParse(item => item.Value == value, out TEnumeration enumeration);
+            TryParse(item => item.Value == value, defaultValue, out TEnumeration enumeration);
             return enumeration;
         }
 
-        public static TEnumeration FromDisplayNameOrDefault<TEnumeration>(string displayName) where TEnumeration : Enumeration, new()
+        public static bool TryParse<TEnumeration>(Func<TEnumeration, bool> predicate, int defaultValue, out TEnumeration enumeration) where TEnumeration : Enumeration, new()
         {
-            TryParse(item => item.DisplayName == displayName, out TEnumeration enumeration);
-            return enumeration;
-        }
+            enumeration = GetAll<TEnumeration>().FirstOrDefault(predicate);
 
+            if (!(enumeration is null)) return true;
+
+            var types = new[] {typeof(int), typeof(string)};
+            var values = new object[] {defaultValue, null};
+            enumeration = Construct<TEnumeration>(types, values);
+            return false;
+        }        
+        
         public static bool TryParse<TEnumeration>(Func<TEnumeration, bool> predicate, out TEnumeration enumeration) where TEnumeration : Enumeration, new()
         {
             enumeration = GetAll<TEnumeration>().FirstOrDefault(predicate);
@@ -115,6 +122,17 @@ namespace System.Chase
                 return enumeration;
 
             throw new ArgumentException($"Failed to parse {typeof(TEnumeration)} because '{value}' is not a valid {description}");
+        }
+        
+        private static T Construct<T>(Type[] paramTypes, object[] paramValues)
+        {
+            Type t = typeof(T);
+
+            ConstructorInfo ci = t.GetConstructor(
+                BindingFlags.Instance | BindingFlags.NonPublic,
+                null, paramTypes, null);
+
+            return (T)ci.Invoke(paramValues);
         }
     }
 }

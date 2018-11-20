@@ -197,6 +197,7 @@ namespace System.Chase.Tests.Unit
                 var x = Enumeration.FromValue<EmployeeType>(invalidType);
             };
 
+            // assert
             action.Should().Throw<Exception>().WithMessage($"Failed to parse {typeof(EmployeeType).FullName} because '{invalidType}' is not a valid value");
         }
 
@@ -212,6 +213,7 @@ namespace System.Chase.Tests.Unit
                 var x = Enumeration.FromDisplayName<EmployeeType>(invalidType);
             };
 
+            // assert
             action.Should().Throw<ArgumentException>().WithMessage($"Failed to parse {typeof(EmployeeType).FullName} because '{invalidType}' is not a valid display name");
         }
 
@@ -231,6 +233,21 @@ namespace System.Chase.Tests.Unit
         }
 
         [Test]
+        public void ShouldCastToExpectedValueAndSetDisplayNameToNull()
+        {
+            // setup
+            const string expectedDisplayName = null;
+            const int expectedValue = 99;
+            
+            // execute
+            var result = (EmployeeType)99;
+            
+            // assert
+            result.Value.Should().Be(expectedValue);
+            result.DisplayName.Should().Be(expectedDisplayName);
+        }
+
+        [Test]
         public void ShouldRetrieveUnknownValue()
         {
             // setup
@@ -243,6 +260,42 @@ namespace System.Chase.Tests.Unit
             // assert
             result.Value.Should().Be(expectedValue);
             result.DisplayName.Should().Be(expectedDisplayName);  
+        }
+
+        [Test]
+        public void ShouldFailToCastFromAnInvalidDisplayName()
+        {
+            // setup
+            var expectedDisplayName = VehicleType.Unknown.DisplayName;
+            const string invalidName = "House";
+            
+            // execute
+            Action action = () =>
+            {
+                var x = (VehicleType) invalidName;
+            };
+
+            // assert
+            action.Should().Throw<ArgumentException>().WithMessage($"Failed to parse {typeof(VehicleType).FullName} because '{invalidName}' is not a valid display name");
+        }
+
+        [Test]
+        public void ShouldCastActualEnumAsExample()
+        {
+            // execute
+            const Example defaultResult = (Example) 0;     // default 
+            const Example ninetyNineResult = (Example) 99; // not a defined value but will still result in an int
+            const Example fooResult = (Example) 1;         // actual discoverable value
+
+            // assert
+            defaultResult.Should().Be(default(Example));
+            ninetyNineResult.Should().Be(99);
+            fooResult.Should().Be(Example.Foo);
+        }
+
+        private enum Example
+        {
+            Foo = 1
         }
     }
 }
