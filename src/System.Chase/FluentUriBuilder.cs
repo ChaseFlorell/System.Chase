@@ -14,7 +14,7 @@
             var baseUrl = new Uri(rootUrl);
             _builder = new UriBuilder(baseUrl);
         }
-
+        
         public FluentUriBuilder(Uri rootUri)
         {
             _builder = new UriBuilder(rootUri);

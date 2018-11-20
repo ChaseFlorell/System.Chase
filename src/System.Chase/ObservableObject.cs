@@ -10,26 +10,34 @@ namespace System.Chase
     public class ObservableObject : INotifyPropertyChanged
     {
         private static readonly Guid _defaultTracker = new Guid("A9614032-C10A-4D6A-9D82-4987F638F718");
-        private readonly IList<Guid> _busyLocks = new List<Guid>();
-        private bool _suppressChangeNotifications;
-        private readonly HashSet<string> _suppressedChangedProperties = new HashSet<string>();
+        internal readonly HashSet<string> SuppressedChangedProperties = new HashSet<string>();
+        internal readonly IList<Guid> BusyLocks = new List<Guid>();
+        internal bool ChangeNotificationsSuppressed;
 
+        /// <summary>
+        /// A helper property that is automatically toggled when <see cref="IsBusy"/> is changed. Simply indicates the inverse of <see cref="IsBusy"/>.
+        /// </summary>
         public bool IsNotBusy => !IsBusy;
+        
+        /// <summary>
+        /// Set this property to <c>true</c> when you want to indicate that the system is Busy and to <c>false</c> when the system is no longer busy.
+        /// </summary>
+        /// <remarks>It is wise to use <see cref="Busy"/> instead of toggling this property directly.</remarks>
         public bool IsBusy
         {
-            get => _busyLocks.Any();
+            get => BusyLocks.Any();
             set
             {
-                if (value && !_busyLocks.Contains(_defaultTracker))
+                if (value && !BusyLocks.Contains(_defaultTracker))
                 {
-                    _busyLocks.Add(_defaultTracker);
+                    BusyLocks.Add(_defaultTracker);
                     RaisePropertyChanged(nameof(IsBusy));
                     RaisePropertyChanged(nameof(IsNotBusy));
                 }
 
-                if (!value && _busyLocks.Contains(_defaultTracker))
+                if (!value && BusyLocks.Contains(_defaultTracker))
                 {
-                    _busyLocks.Remove(_defaultTracker);
+                    BusyLocks.Remove(_defaultTracker);
                     RaisePropertyChanged(nameof(IsBusy));
                     RaisePropertyChanged(nameof(IsNotBusy));
                 }
@@ -38,17 +46,29 @@ namespace System.Chase
 
         public event PropertyChangedEventHandler PropertyChanged;
 
+        /// <summary>
+        /// Toggle <see cref="IsBusy"/> and ensure it's set for the duration of the using.
+        /// </summary>
+        /// <param name="delayInMs">how long should the system delay before toggling <see cref="IsBusy"/></param>
         public IDisposable Busy(int delayInMs = 0) 
             => new BusyHelper(this, delayInMs);
         
+        /// <summary>
+        /// Caches all <see cref="INotifyPropertyChanged"/> notifications for the duration of the using, and raises them all at the end.
+        /// </summary>
+        /// <remarks>The cache uses a <see cref="HashSet{T}"/> in order to keep all changed properties unique.</remarks>
         public IDisposable SuppressChangeNotifications() 
             => new SuppressChangeHelper(this);
 
-        protected void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        /// <summary>
+        /// Invokes the <see cref="PropertyChanged"/> event for a given property
+        /// </summary>
+        /// <param name="propertyName">Name of the changed property</param>
+        protected internal void RaisePropertyChanged([CallerMemberName] string propertyName = null)
         {
-            if (_suppressChangeNotifications) 
+            if (ChangeNotificationsSuppressed) 
             {
-                _suppressedChangedProperties.Add(propertyName);
+                SuppressedChangedProperties.Add(propertyName);
                 return;
             }
 
@@ -163,73 +183,5 @@ namespace System.Chase
         /// <param name="handleErrorAction">(optional) Custom Action to invoke with the thrown Exception</param>
         protected Task<T> RunSafeAsync<T>(Func<Task<T>> task, Action<Exception> handleErrorAction) 
             => RunSafeHelper.RunSafeImplAsync(task, handleErrorAction);
-        
-        private sealed class SuppressChangeHelper : IDisposable
-        {
-            private readonly ObservableObject _viewModel;
-            private static readonly object _lock = new object();
-            
-            internal SuppressChangeHelper(ObservableObject viewModel)
-            {
-                _viewModel = viewModel;
-                _viewModel._suppressChangeNotifications = true;
-            }
-
-            public void Dispose()
-            {
-                lock (_lock)
-                {
-                    _viewModel._suppressChangeNotifications = false;
-                
-                    foreach (var property in _viewModel._suppressedChangedProperties)
-                        _viewModel.RaisePropertyChanged(property);
-                
-                    _viewModel._suppressedChangedProperties.Clear();
-                }
-            }
-        }
-
-        private sealed class BusyHelper : IDisposable
-        {
-            private readonly int _delayInMs;
-            private readonly ObservableObject _viewModel;
-            private bool _delayed;
-            private Guid _tracker;
-
-            internal BusyHelper(ObservableObject viewModel, int delayInMs)
-            {
-                _viewModel = viewModel;
-                if (delayInMs <= 0)
-                {
-                    StartBusy();
-                }
-                else
-                {
-                    _delayed = true;
-                    _delayInMs = delayInMs;
-                    Task.Delay(delayInMs).ContinueWith(_ =>
-                    {
-                        StartBusy();
-                        _delayed = false;
-                    }, TaskContinuationOptions.ExecuteSynchronously);
-                }
-
-                void StartBusy()
-                {
-                    _tracker = new Guid();
-                    _viewModel._busyLocks.Add(_tracker);
-                    _viewModel.RaisePropertyChanged(nameof(IsBusy));
-                    _viewModel.RaisePropertyChanged(nameof(IsNotBusy));
-                }
-            }
-
-            public async void Dispose()
-            {
-                while (_delayed) await Task.Delay(_delayInMs).ConfigureAwait(false);
-                _viewModel._busyLocks.Remove(_tracker);
-                _viewModel.RaisePropertyChanged(nameof(IsBusy));
-                _viewModel.RaisePropertyChanged(nameof(IsNotBusy));
-            }
-        }
     }
 }

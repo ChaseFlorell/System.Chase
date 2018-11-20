@@ -5,13 +5,7 @@ namespace System.Chase.Tests.Unit
 {
     [TestFixture]
     public class FluentUriBuilderTests
-    {
-        private FluentUriBuilder _builder;
-
-        public void SetUp()
-        {
-            _builder = new FluentUriBuilder();
-        }
+    {   
         [Test]
         public void ShouldBuildUriWithFragment()
         {
