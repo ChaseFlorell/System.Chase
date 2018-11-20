@@ -155,7 +155,7 @@ namespace System.Chase.Tests.Unit
         public void ShouldGetEmployeeTypeFromValue()
         {
             // setup
-            const int value = 3;
+            var value = EmployeeType.AssistantToTheRegionalManager.Value;
             var expectedResult = EmployeeType.AssistantToTheRegionalManager;
             
             // execute
@@ -189,7 +189,7 @@ namespace System.Chase.Tests.Unit
         public void ShouldThrowOnInvalidValue()
         {
             // setup
-            const int invalidType = 4;
+            const int invalidType = 10;
             
             // execute
             Action action = () =>
