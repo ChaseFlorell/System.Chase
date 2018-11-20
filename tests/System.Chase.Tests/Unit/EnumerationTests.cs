@@ -1,5 +1,4 @@
 using System.Chase.Tests.Fixtures;
-using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
@@ -38,7 +37,7 @@ namespace System.Chase.Tests.Unit
         {
             // setup
             var emp1 = EmployeeType.RegionalManager;
-            var emp2 = 1;
+            var emp2 = EmployeeType.RegionalManager.Value;
             
             // execute
             var result = emp1 == emp2;
@@ -51,7 +50,7 @@ namespace System.Chase.Tests.Unit
         {
             // setup
             var emp1 = EmployeeType.RegionalManager;
-            var emp2 = 2;
+            var emp2 = EmployeeType.AssistantToTheRegionalManager.Value;
             
             // execute
             var result = emp1 == emp2;
@@ -64,7 +63,7 @@ namespace System.Chase.Tests.Unit
         {
             // setup
             var emp1 = EmployeeType.RegionalManager;
-            var emp2 = "Regional Manager";
+            var emp2 = EmployeeType.RegionalManager.DisplayName;
             
             // execute
             var result = emp1 == emp2;
@@ -77,7 +76,7 @@ namespace System.Chase.Tests.Unit
         {
             // setup
             var emp1 = EmployeeType.RegionalManager;
-            var emp2 = "Assistant to the Regional Manager";
+            var emp2 = EmployeeType.AssistantToTheRegionalManager.DisplayName;
             
             // execute
             var result = emp1 == emp2;
@@ -89,7 +88,7 @@ namespace System.Chase.Tests.Unit
         public void ShouldTestEqualityWhereLeftIsInt()
         {
             // setup
-            var emp1 = 1;
+            var emp1 = EmployeeType.RegionalManager.Value;
             var emp2 = EmployeeType.RegionalManager;
             
             // execute
@@ -102,7 +101,7 @@ namespace System.Chase.Tests.Unit
         public void ShouldTestInequalityWhereLeftsInt()
         {
             // setup
-            var emp1 = 2;
+            var emp1 = EmployeeType.Sales.Value;
             var emp2 = EmployeeType.RegionalManager;
             
             // execute
@@ -115,7 +114,7 @@ namespace System.Chase.Tests.Unit
         public void ShouldTestEqualityWhereLeftIsString()
         {
             // setup
-            var emp1 = "Regional Manager";
+            var emp1 = EmployeeType.RegionalManager.DisplayName;
             var emp2 = EmployeeType.RegionalManager;
             
             // execute
@@ -128,7 +127,7 @@ namespace System.Chase.Tests.Unit
         public void ShouldTestInequalityWhereLeftsString()
         {
             // setup
-            var emp1 = "Assistant to the Regional Manager";
+            var emp1 = EmployeeType.AssistantToTheRegionalManager.DisplayName;
             var emp2 = EmployeeType.RegionalManager;
             
             // execute
@@ -141,7 +140,7 @@ namespace System.Chase.Tests.Unit
         public void ShouldGetEmployeeTypeFromDisplayName()
         {
             // setup
-            const string displayName = "Assistant to the Regional Manager";
+            var displayName = EmployeeType.AssistantToTheRegionalManager.DisplayName;
             var expectedResult = EmployeeType.AssistantToTheRegionalManager;
             
             // execute
@@ -172,9 +171,9 @@ namespace System.Chase.Tests.Unit
         {
             // setup
             const int expectedCount = 3;
-            var first = (EmployeeType)1;
-            var second = (EmployeeType)"Sales";
-            var third = (EmployeeType)3;
+            var first = (EmployeeType)EmployeeType.RegionalManager.Value;
+            var second = (EmployeeType)EmployeeType.Sales.DisplayName;
+            var third = (EmployeeType)EmployeeType.AssistantToTheRegionalManager.Value;
             
             // execute
             var results = Enumeration.GetAll<EmployeeType>().ToList();
@@ -213,7 +212,7 @@ namespace System.Chase.Tests.Unit
                 var x = Enumeration.FromDisplayName<EmployeeType>(invalidType);
             };
 
-            action.Should().Throw<Exception>().WithMessage($"Failed to parse {typeof(EmployeeType).FullName} because '{invalidType}' is not a valid display name");
+            action.Should().Throw<ArgumentException>().WithMessage($"Failed to parse {typeof(EmployeeType).FullName} because '{invalidType}' is not a valid display name");
         }
 
         [Test]
@@ -235,7 +234,7 @@ namespace System.Chase.Tests.Unit
         public void ShouldRetrieveUnknownValue()
         {
             // setup
-            const string expectedDisplayName = "Unknown Vehicle Type";
+            var expectedDisplayName = VehicleType.Unknown.DisplayName;
             const int expectedValue = 0;
             
             // execute
