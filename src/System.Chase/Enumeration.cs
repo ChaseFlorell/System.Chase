@@ -135,8 +135,8 @@ namespace System.Chase
             if (!(constructor is null)) return (T) constructor.Invoke(paramValues);
             
             var errorMessage = paramTypes.Any() 
-                ? $"{typeof(T).FullName} must have a private constructor as `{typeof(T).Name}({string.Join(", ", paramTypes.Select(p => p.Name))})`" 
-                : $"{typeof(T).FullName} must have an empty private constructor";
+                ? $"{typeof(T).FullName} must have a non-public constructor `{typeof(T).Name}({string.Join(", ", paramTypes.Select(p => p.Name))})`" 
+                : $"{typeof(T).FullName} must have an empty non-public constructor";
                 
             throw new Exception(errorMessage);
         }
