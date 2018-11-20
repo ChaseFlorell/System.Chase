@@ -13,4 +13,3 @@ namespace System.Chase.Tests.Fixtures
         public static implicit operator EmployeeType(string displayName) => FromDisplayNameOrDefault<EmployeeType>(displayName);
     }
 }
- 
