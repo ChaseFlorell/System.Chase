@@ -1,22 +1,45 @@
+using System.Chase.Tests.Fixtures;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
 
 namespace System.Chase.Tests.Unit
 {
-    internal class TestViewModel : ObservableObject
-    {
-        private string _name;
-        public string Name
-        {
-            get => _name;
-            set => SetProperty(ref _name, value);
-        }
-    }
     
     [TestFixture]
     public class ObservableObjectTests
     {
+        [Test]
+        public void ShouldSafelyRunVolatileCode()
+        {
+            // setup
+            var vm = new TestViewModel();
+            const string expectedErrorMessage = "barf";
+            void ThrowError() => throw new Exception(expectedErrorMessage);
+
+            // execute
+            Action action = () => vm.SafeActionRunner(ThrowError);
+            
+            // assert
+            action.Should().NotThrow();
+            vm.LastErrorMessage.Should().Be(expectedErrorMessage);
+        }
+        
+        [Test]
+        public void ShouldFailToRunVolatileCode()
+        {
+            // setup
+            var vm = new TestViewModel();
+            const string expectedErrorMessage = "barf";
+            void ThrowError() => throw new Exception(expectedErrorMessage);
+
+            // execute
+            Action action = () => vm.UnsafeActionRunner(ThrowError);
+            
+            // assert
+            action.Should().Throw<Exception>().WithMessage(expectedErrorMessage);
+        }
+        
         [Test]
         public void ShouldCallPropertyChangedOnlyOnce()
         {
