@@ -198,5 +198,24 @@ namespace System.Chase.Tests.Unit
             // execute
             action.Should().Throw<ArgumentException>().WithMessage("Seed must be a minimum of 8 characters\nParameter name: seed");
         }
+
+        [Test]
+        public void ShouldExtractTimestampFromSequentialGuid()
+        {
+            // setup
+            var utcNow = System.DateTime.UtcNow;
+            var sequentialGuid = SequentialGuid.NewSequentialGuid();
+            
+            // execute
+            var extractedTime = SequentialGuid.GetTimestamp(sequentialGuid);
+            
+            // assert
+            extractedTime.Year.Should().Be(utcNow.Year);
+            extractedTime.Month.Should().Be(utcNow.Month);
+            extractedTime.Day.Should().Be(utcNow.Day);
+            extractedTime.Hour.Should().Be(utcNow.Hour);
+            extractedTime.Minute.Should().Be(utcNow.Minute);
+            extractedTime.Second.Should().Be(utcNow.Second);
+        }
     }
 }
