@@ -116,7 +116,7 @@ namespace System.Chase
             var truncatedSeed = seed.Substring(0, _numberOfSeedBytes);
             
             if(originalSeedLength > _numberOfDateBytes)
-                Diagnostics.Debug.WriteLine($"Sequential guid seed '{seed}' is longer than {_numberOfSeedBytes} characters and will be truncated to {truncatedSeed}");
+                Diagnostics.Debug.WriteLine($"Sequential guid seed '{seed}' is longer than {_numberOfSeedBytes} characters and will be truncated to '{truncatedSeed}'");
                 
             var seedBytes = Encoding.ASCII.GetBytes(truncatedSeed);
             var truncated = new byte[_guidByteSize];
