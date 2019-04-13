@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
@@ -192,7 +191,7 @@ namespace System.Chase.Tests.Unit
         }
 
         [Test]
-        public void TimeGeneratingOneMillionSequentialGuidsWithKnownSeed()
+        public void TimeGeneratingOneMillionSequentialGuidsWithKnownGuidSeed()
         {
             // setup
             var set = new HashSet<Guid>();
@@ -201,6 +200,28 @@ namespace System.Chase.Tests.Unit
             for (var i = 0; i < _oneMillion; i++)
             {
                 set.Add(SequentialGuid.NewSequentialGuid(_knownSeed));
+            }
+
+            // assert
+            set.Count.Should().Be(_oneMillion);
+            set.Distinct().Count().Should().Be(_oneMillion);
+        }
+
+        [Test]
+        [TestCase("E6019C40-A734-4BD5-A247-5CE3FDB13527")]
+        [TestCase("9DE73266-4A2C-4B26-8352-3AD57AD61BB5")]
+        [TestCase("I 🧡 Xamarin")]
+        [TestCase("Microsoft")]
+        [TestCase("Burritos")]
+        public void TimeGeneratingOneMillionSequentialGuidsWithKnownStringSeed(string seed)
+        {
+            // setup
+            var set = new HashSet<Guid>();
+            
+            // execute
+            for (var i = 0; i < _oneMillion; i++)
+            {
+                set.Add(SequentialGuid.NewSequentialGuid(seed));
             }
 
             // assert
@@ -228,7 +249,7 @@ namespace System.Chase.Tests.Unit
         }
 
         [Test]
-        public void ShouldExtractTimestampFromSequentialGuid()
+        public void ShouldExtractUtcTimestampFromSequentialGuid()
         {
             // setup
             var utcNow = DateTime.UtcNow;
@@ -244,6 +265,61 @@ namespace System.Chase.Tests.Unit
             extractedTime.Hour.Should().Be(utcNow.Hour);
             extractedTime.Minute.Should().Be(utcNow.Minute);
             extractedTime.Second.Should().Be(utcNow.Second);
+        }
+
+        [Test]
+        public void ShouldExtractNowTimestampFromSequentialGuid()
+        {
+            // setup
+            var utcNow = DateTime.Now;
+            var sequentialGuid = SequentialGuid.NewSequentialGuid(() => DateTime.Now);
+            
+            // execute
+            var extractedTime = SequentialGuid.GetTimestamp(sequentialGuid);
+            
+            // assert
+            extractedTime.Year.Should().Be(utcNow.Year);
+            extractedTime.Month.Should().Be(utcNow.Month);
+            extractedTime.Day.Should().Be(utcNow.Day);
+            extractedTime.Hour.Should().Be(utcNow.Hour);
+            extractedTime.Minute.Should().Be(utcNow.Minute);
+            extractedTime.Second.Should().Be(utcNow.Second);
+        }
+
+        [Test]
+        public void ShouldExtractEpochTimestampFromSequentialGuid()
+        {
+            // setup
+            const string seed = "Burritos";
+            var now = DateTimeHelper.Epoch;
+            var sequentialGuid = SequentialGuid.NewSequentialGuid(seed,() => now);
+            
+            // execute
+            var extractedTime = SequentialGuid.GetTimestamp(sequentialGuid);
+            
+            // assert
+            extractedTime.Year.Should().Be(now.Year);
+            extractedTime.Month.Should().Be(now.Month);
+            extractedTime.Day.Should().Be(now.Day);
+            extractedTime.Hour.Should().Be(now.Hour);
+            extractedTime.Minute.Should().Be(now.Minute);
+            extractedTime.Second.Should().Be(now.Second);
+            extractedTime.Second.Should().Be(now.Millisecond);
+        }
+
+        [Test]
+        public void ShouldGenerateEmptyGuidFromStringSeed()
+        {
+            // setup
+            const string emptyStringSeed = "                "; // this is what an empty seed looks like
+            var emptyFromStringSeed = SequentialGuid.NewSequentialGuid(emptyStringSeed, () => DateTimeHelper.Epoch);
+            
+            // execute
+            var resultFromString = SequentialGuid.GetTimestamp(emptyFromStringSeed);
+            
+            // assert
+            emptyFromStringSeed.Should().Be(Guid.Empty);
+            resultFromString.Should().Be(DateTimeHelper.Epoch);
         }
     }
 }

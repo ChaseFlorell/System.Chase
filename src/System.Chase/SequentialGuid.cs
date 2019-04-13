@@ -24,7 +24,7 @@ namespace System.Chase
                 try
                 {
                     var result = BytesToDateTime(dateBytes);
-                    if (result <= DateTimeHelper.Epoch || result > DateTime.MaxValue)
+                    if (result < DateTimeHelper.Epoch || result > DateTime.MaxValue)
                         throw new InvalidOperationException($"Cannot extract a valid DateTime from {guid}");
                     return result;
                 }
@@ -34,28 +34,20 @@ namespace System.Chase
                 }
             }
         }
-        
-        public static Guid NewSequentialGuid() => NewSequentialGuid(_defaultDateProvider);
-       
-        public static Guid NewSequentialGuid(Func<DateTime> dateProvider) => NewSequentialGuid(Guid.NewGuid(), dateProvider);
+
+        public static Guid NewSequentialGuid() 
+            => NewSequentialGuid(_defaultDateProvider);
+
+        public static Guid NewSequentialGuid(Func<DateTime> dateProvider) 
+            => NewSequentialGuid(Guid.NewGuid(), dateProvider);
 
         public static Guid NewSequentialGuid(string seed)
             => NewSequentialGuid(seed, _defaultDateProvider);
-        
-        public static Guid NewSequentialGuid(string seed, Func<DateTime> dateProvider)
-        {
-            if (seed is null || seed.Length < _numberOfSeedBytes)
-                throw new ArgumentException("Seed must be a minimum of 8 characters", nameof(seed));
 
-            var seedBytes = Encoding.ASCII.GetBytes(seed.Substring(0,_numberOfSeedBytes));
-            var truncated = new byte[_guidByteSize];
+        public static Guid NewSequentialGuid(string seed, Func<DateTime> dateProvider) 
+            => NewSequentialGuid(GenerateTruncatedGuid(seed), dateProvider);
 
-            Array.Copy(seedBytes, 0, truncated, _numberOfDateBytes, _numberOfSeedBytes);
-
-            return NewSequentialGuid(new Guid(truncated), dateProvider);
-        }
-
-        public static Guid NewSequentialGuid(Guid seed) 
+        public static Guid NewSequentialGuid(Guid seed)
             => NewSequentialGuid(seed, _defaultDateProvider);
 
         public static Guid NewSequentialGuid(Guid seed, Func<DateTime> dateProvider)
@@ -103,5 +95,20 @@ namespace System.Chase
 
         private static DateTime FromUnixTicks(long ms)
             => DateTimeHelper.Epoch.AddTicks(ms);
+
+        private static Guid GenerateTruncatedGuid(string seed)
+        {
+            if (Guid.TryParse(seed, out var guidOutput)) return guidOutput;
+            
+            if (seed is null || seed.Length < _numberOfSeedBytes)
+                throw new ArgumentException("Seed must be a minimum of 8 characters", nameof(seed));
+
+            var seedBytes = Encoding.ASCII.GetBytes(seed.Substring(0, _numberOfSeedBytes));
+            var truncated = new byte[_guidByteSize];
+
+            Array.Copy(seedBytes, 0, truncated, _numberOfDateBytes, _numberOfSeedBytes);
+            var result = new Guid(truncated);
+            return result;
+        }
     }
 }
