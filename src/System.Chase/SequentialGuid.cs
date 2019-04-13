@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text;
 
 namespace System.Chase
@@ -13,14 +14,15 @@ namespace System.Chase
         private static readonly object _getLock = new object();
         private static readonly object _writeLock = new object();
         private static readonly Func<DateTime> _defaultDateProvider = () => DateTime.UtcNow;
+        private static readonly Dictionary<string,Guid> _stringSeedCache = new Dictionary<string, Guid>();
 
         public static DateTime GetTimestamp(Guid guid)
         {
             lock (_getLock)
             {
-                var combBytes = guid.ToByteArray();
+                var guidBytes = guid.ToByteArray();
                 var dateBytes = new byte[_numberOfDateBytes];
-                Array.Copy(combBytes, _embedAtIndex, dateBytes, 0, _numberOfDateBytes);
+                Array.Copy(guidBytes, _embedAtIndex, dateBytes, 0, _numberOfDateBytes);
                 try
                 {
                     var result = BytesToDateTime(dateBytes);
@@ -98,16 +100,30 @@ namespace System.Chase
 
         private static Guid GenerateTruncatedGuid(string seed)
         {
-            if (Guid.TryParse(seed, out var guidOutput)) return guidOutput;
-            
             if (seed is null || seed.Length < _numberOfSeedBytes)
                 throw new ArgumentException("Seed must be a minimum of 8 characters", nameof(seed));
+            
+            if (_stringSeedCache.TryGetValue(seed, out var cacheResult)) 
+                return cacheResult;
+            
+            if (Guid.TryParse(seed, out var guidOutput))
+            {
+                _stringSeedCache[seed] = guidOutput;
+                return guidOutput;
+            }
 
-            var seedBytes = Encoding.ASCII.GetBytes(seed.Substring(0, _numberOfSeedBytes));
+            var originalSeedLength = seed.Length;
+            var truncatedSeed = seed.Substring(0, _numberOfSeedBytes);
+            
+            if(originalSeedLength > _numberOfDateBytes)
+                Diagnostics.Debug.WriteLine($"Sequential guid seed '{seed}' is longer than {_numberOfSeedBytes} characters and will be truncated to {truncatedSeed}");
+                
+            var seedBytes = Encoding.ASCII.GetBytes(truncatedSeed);
             var truncated = new byte[_guidByteSize];
 
             Array.Copy(seedBytes, 0, truncated, _numberOfDateBytes, _numberOfSeedBytes);
             var result = new Guid(truncated);
+            _stringSeedCache[seed] = result;
             return result;
         }
     }
