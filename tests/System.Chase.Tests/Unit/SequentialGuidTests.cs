@@ -9,7 +9,7 @@ namespace System.Chase.Tests.Unit
     [TestFixture]
     public class SequentialGuidTests
     {
-        private Guid _knownSeed;
+        private readonly Guid _knownSeed;
         private const int _oneMillion = 1000000;
 
         public SequentialGuidTests()
@@ -37,8 +37,8 @@ namespace System.Chase.Tests.Unit
             var timestamp = SequentialGuid.GetTimestamp(sequentialGuid);
 
             // assert
-            timestamp.Should().BeAfter(System.DateTime.UtcNow.Subtract(TimeSpan.FromMilliseconds(1)));
-            timestamp.Should().BeBefore(System.DateTime.UtcNow.Add(TimeSpan.FromMilliseconds(1)));
+            timestamp.Should().BeAfter(DateTime.UtcNow.Subtract(TimeSpan.FromMilliseconds(1)));
+            timestamp.Should().BeBefore(DateTime.UtcNow.Add(TimeSpan.FromMilliseconds(1)));
         }
 
         [Test]
@@ -91,7 +91,7 @@ namespace System.Chase.Tests.Unit
             guidList.Count.Should().Be(expectedLength);
             guidList.Distinct().Count().Should().Be(expectedLength, "all guids are unique");
 
-            var previousStamp = System.DateTime.MinValue;
+            var previousStamp = DateTime.MinValue;
             foreach (var guid in guidList.OrderBy(SequentialGuid.GetTimestamp))
             {
                 var stamp = SequentialGuid.GetTimestamp(guid);
@@ -126,7 +126,7 @@ namespace System.Chase.Tests.Unit
             guidList.Count.Should().Be(expectedLength);
             guidList.Distinct().Count().Should().Be(expectedLength, "all guids are unique");
 
-            var previousStamp = System.DateTime.MinValue;
+            var previousStamp = DateTime.MinValue;
             foreach (var guid in guidList.OrderBy(SequentialGuid.GetTimestamp))
             {
                 var stamp = SequentialGuid.GetTimestamp(guid);
@@ -152,7 +152,7 @@ namespace System.Chase.Tests.Unit
             guidList.Count.Should().Be(expectedLength);
             guidList.Distinct().Count().Should().Be(expectedLength, "all guids are unique");
 
-            var previousStamp = System.DateTime.MinValue;
+            var previousStamp = DateTime.MinValue;
             foreach (var guid in guidList.OrderBy(SequentialGuid.GetTimestamp))
             {
                 var stamp = SequentialGuid.GetTimestamp(guid);
@@ -209,14 +209,15 @@ namespace System.Chase.Tests.Unit
         }
 
         [Test]
+        [TestCase(null)]
         [TestCase("")]
         [TestCase("a")]
-        [TestCase("as")]
-        [TestCase("asd")]
-        [TestCase("asdf")]
-        [TestCase("asdfj")]
-        [TestCase("asdfjk")]
-        [TestCase("asdfjkl")]
+        [TestCase("to")]
+        [TestCase("bad")]
+        [TestCase("flab")]
+        [TestCase("brats")]
+        [TestCase("coffee")]
+        [TestCase("created")]
         public void ShouldThrowWhenSeedIsTooShort(string seed)
         {
             // setup
@@ -230,7 +231,7 @@ namespace System.Chase.Tests.Unit
         public void ShouldExtractTimestampFromSequentialGuid()
         {
             // setup
-            var utcNow = System.DateTime.UtcNow;
+            var utcNow = DateTime.UtcNow;
             var sequentialGuid = SequentialGuid.NewSequentialGuid();
             
             // execute

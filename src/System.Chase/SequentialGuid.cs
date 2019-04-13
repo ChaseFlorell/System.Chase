@@ -12,9 +12,9 @@ namespace System.Chase
         private static Guid _previousSeed;
         private static readonly object _getLock = new object();
         private static readonly object _writeLock = new object();
-        private static readonly Func<System.DateTime> _defaultDateProvider = () => System.DateTime.UtcNow;
+        private static readonly Func<DateTime> _defaultDateProvider = () => DateTime.UtcNow;
 
-        public static System.DateTime GetTimestamp(Guid guid)
+        public static DateTime GetTimestamp(Guid guid)
         {
             lock (_getLock)
             {
@@ -24,7 +24,7 @@ namespace System.Chase
                 try
                 {
                     var result = BytesToDateTime(dateBytes);
-                    if (result <= DateTime.Epoch || result > System.DateTime.MaxValue)
+                    if (result <= DateTimeHelper.Epoch || result > DateTime.MaxValue)
                         throw new InvalidOperationException($"Cannot extract a valid DateTime from {guid}");
                     return result;
                 }
@@ -36,14 +36,15 @@ namespace System.Chase
         }
         
         public static Guid NewSequentialGuid() => NewSequentialGuid(_defaultDateProvider);
-        public static Guid NewSequentialGuid(Func<System.DateTime> dateProvider) => NewSequentialGuid(Guid.NewGuid(), dateProvider);
+       
+        public static Guid NewSequentialGuid(Func<DateTime> dateProvider) => NewSequentialGuid(Guid.NewGuid(), dateProvider);
 
         public static Guid NewSequentialGuid(string seed)
             => NewSequentialGuid(seed, _defaultDateProvider);
         
-        public static Guid NewSequentialGuid(string seed, Func<System.DateTime> dateProvider)
+        public static Guid NewSequentialGuid(string seed, Func<DateTime> dateProvider)
         {
-            if (seed.Length < _numberOfSeedBytes)
+            if (seed is null || seed.Length < _numberOfSeedBytes)
                 throw new ArgumentException("Seed must be a minimum of 8 characters", nameof(seed));
 
             var seedBytes = Encoding.ASCII.GetBytes(seed.Substring(0,_numberOfSeedBytes));
@@ -57,7 +58,7 @@ namespace System.Chase
         public static Guid NewSequentialGuid(Guid seed) 
             => NewSequentialGuid(seed, _defaultDateProvider);
 
-        public static Guid NewSequentialGuid(Guid seed, Func<System.DateTime> dateProvider)
+        public static Guid NewSequentialGuid(Guid seed, Func<DateTime> dateProvider)
         {
             lock (_writeLock)
             {
@@ -76,7 +77,7 @@ namespace System.Chase
             }
         }
 
-        private static byte[] DateTimeToBytes(System.DateTime timestamp)
+        private static byte[] DateTimeToBytes(DateTime timestamp)
         {
             var ms = ToUnixTicks(timestamp);
             var msBytes = BitConverter.GetBytes(ms);
@@ -87,7 +88,7 @@ namespace System.Chase
             return result;
         }
 
-        private static System.DateTime BytesToDateTime(byte[] value)
+        private static DateTime BytesToDateTime(byte[] value)
         {
             var tickBytes = new byte[_numberOfDateBytes];
             const int index = _numberOfSeedBytes - _numberOfDateBytes;
@@ -97,10 +98,10 @@ namespace System.Chase
             return FromUnixTicks(ms);
         }
 
-        private static long ToUnixTicks(System.DateTime timestamp)
-            => timestamp.Ticks - DateTime.Epoch.Ticks;
+        private static long ToUnixTicks(DateTime timestamp)
+            => timestamp.Ticks - DateTimeHelper.Epoch.Ticks;
 
-        private static System.DateTime FromUnixTicks(long ms)
-            => DateTime.Epoch.AddTicks(ms);
+        private static DateTime FromUnixTicks(long ms)
+            => DateTimeHelper.Epoch.AddTicks(ms);
     }
 }
