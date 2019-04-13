@@ -9,8 +9,14 @@ namespace System.Chase.Tests.Unit
     [TestFixture]
     public class SequentialGuidTests
     {
+        private Guid _knownSeed;
         private const int _oneMillion = 1000000;
 
+        public SequentialGuidTests()
+        {
+            _knownSeed = new Guid("012AA8E1-BCC1-4EC9-92A6-D96EABC881B4");
+        }
+        
         [Test]
         public void ShouldGenerateGuid()
         {
@@ -36,7 +42,7 @@ namespace System.Chase.Tests.Unit
         }
 
         [Test]
-        [TestCase("0B77CE03-F4C5-4204-8B32-ABA22EFB5580")]
+        [TestCase("C6B66B5C-A007-43EE-BB66-DE0432B44A20")]
         [TestCase("74E6B8F3-DBE6-4ECF-8DE3-C4CE17573026")]
         [TestCase("0CC49837-1461-4409-ADCE-ACF85EE15AFD")]
         [TestCase("42E33BA2-40B4-40E3-8834-1C341BE70486")]
@@ -45,7 +51,7 @@ namespace System.Chase.Tests.Unit
         [TestCase("9DE73266-4A2C-4B26-8352-3AD57AD61BB5")]
         [TestCase("A7528345-ABDA-452E-8AA9-6F32C5420420")]
         [TestCase("B35E7CD2-AB8D-4BC0-93ED-05E4CE22F56B")]
-        [TestCase("83D9DE21-C1A9-4B13-99C3-DF38E4D6C8D4")]
+        [TestCase("ED54DDEC-547D-4179-8644-97E4B75F2112")]
         public void ShouldFailToGetTimestamp(string seed)
         {
             // setup 
@@ -171,12 +177,33 @@ namespace System.Chase.Tests.Unit
         [Test]
         public void TimeGeneratingOneMillionSequentialGuids()
         {
+            // setup
             var set = new HashSet<Guid>();
+            
+            // execute
             for (var i = 0; i < _oneMillion; i++)
             {
                 set.Add(SequentialGuid.NewSequentialGuid());
             }
 
+            // assert
+            set.Count.Should().Be(_oneMillion);
+            set.Distinct().Count().Should().Be(_oneMillion);
+        }
+
+        [Test]
+        public void TimeGeneratingOneMillionSequentialGuidsWithKnownSeed()
+        {
+            // setup
+            var set = new HashSet<Guid>();
+            
+            // execute
+            for (var i = 0; i < _oneMillion; i++)
+            {
+                set.Add(SequentialGuid.NewSequentialGuid(_knownSeed));
+            }
+
+            // assert
             set.Count.Should().Be(_oneMillion);
             set.Distinct().Count().Should().Be(_oneMillion);
         }

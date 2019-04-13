@@ -12,6 +12,7 @@ namespace System.Chase
         private static Guid _previousSeed;
         private static readonly object _getLock = new object();
         private static readonly object _writeLock = new object();
+        private static readonly Func<System.DateTime> _defaultDateProvider = () => System.DateTime.UtcNow;
 
         public static System.DateTime GetTimestamp(Guid guid)
         {
@@ -23,8 +24,7 @@ namespace System.Chase
                 try
                 {
                     var result = BytesToDateTime(dateBytes);
-                    if (result <= DateTime.Epoch
-                        || result > System.DateTime.UtcNow.AddMinutes(1))
+                    if (result <= DateTime.Epoch || result > System.DateTime.MaxValue)
                         throw new InvalidOperationException($"Cannot extract a valid DateTime from {guid}");
                     return result;
                 }
@@ -35,9 +35,13 @@ namespace System.Chase
             }
         }
         
-        public static Guid NewSequentialGuid() => NewSequentialGuid(Guid.NewGuid());
+        public static Guid NewSequentialGuid() => NewSequentialGuid(_defaultDateProvider);
+        public static Guid NewSequentialGuid(Func<System.DateTime> dateProvider) => NewSequentialGuid(Guid.NewGuid(), dateProvider);
 
         public static Guid NewSequentialGuid(string seed)
+            => NewSequentialGuid(seed, _defaultDateProvider);
+        
+        public static Guid NewSequentialGuid(string seed, Func<System.DateTime> dateProvider)
         {
             if (seed.Length < _numberOfSeedBytes)
                 throw new ArgumentException("Seed must be a minimum of 8 characters", nameof(seed));
@@ -47,18 +51,21 @@ namespace System.Chase
 
             Array.Copy(seedBytes, 0, truncated, _numberOfDateBytes, _numberOfSeedBytes);
 
-            return NewSequentialGuid(new Guid(truncated));
+            return NewSequentialGuid(new Guid(truncated), dateProvider);
         }
 
-        private static Guid NewSequentialGuid(Guid seed)
+        public static Guid NewSequentialGuid(Guid seed) 
+            => NewSequentialGuid(seed, _defaultDateProvider);
+
+        public static Guid NewSequentialGuid(Guid seed, Func<System.DateTime> dateProvider)
         {
             lock (_writeLock)
             {
                 var outputBytes = seed.ToByteArray();
-                var stamp = System.DateTime.UtcNow;
+                var stamp = dateProvider();
 
                 // don't allow another timestamp within the same CPU Tick and Seed
-                while (stamp.Ticks == _previousTicks && seed == _previousSeed) stamp = System.DateTime.UtcNow;
+                while (stamp.Ticks == _previousTicks && seed == _previousSeed) stamp = dateProvider();
 
                 _previousTicks = stamp.Ticks;
                 _previousSeed = seed;
