@@ -9,6 +9,7 @@ namespace System.Chase.Tests.Unit
     [TestFixture]
     public class SequentialGuidTests
     {
+        private const int _oneMillion = 1000000;
 
         [Test]
         public void ShouldGenerateGuid()
@@ -65,9 +66,9 @@ namespace System.Chase.Tests.Unit
         [TestCase("9E4E69DE-EE59-448E-AC64-ED58D7F69D3A")]
         [TestCase("E6019C40-A734-4BD5-A247-5CE3FDB13527")]
         [TestCase("9DE73266-4A2C-4B26-8352-3AD57AD61BB5")]
-        [TestCase("A7528345-ABDA-452E-8AA9-6F32C5420420")]
-        [TestCase("B35E7CD2-AB8D-4BC0-93ED-05E4CE22F56B")]
-        [TestCase("83D9DE21-C1A9-4B13-99C3-DF38E4D6C8D4")]
+        [TestCase("I 🧡 Xamarin")]
+        [TestCase("Words With Spaces")]
+        [TestCase("System.Chase")]
         public void ShouldGenerateSequentialGuidsWithKnownSeed(string seed)
         {
             // setup
@@ -152,6 +153,32 @@ namespace System.Chase.Tests.Unit
                 stamp.Should().BeOnOrAfter(previousStamp);
                 previousStamp = stamp;
             }
+        }
+
+        [Test]
+        public void TimeGeneratingOneMillionGuids()
+        {
+            var set = new HashSet<Guid>();
+            for (var i = 0; i < _oneMillion; i++)
+            {
+                set.Add(Guid.NewGuid());
+            }
+
+            set.Count.Should().Be(_oneMillion);
+            set.Distinct().Count().Should().Be(_oneMillion);
+        }
+
+        [Test]
+        public void TimeGeneratingOneMillionSequentialGuids()
+        {
+            var set = new HashSet<Guid>();
+            for (var i = 0; i < _oneMillion; i++)
+            {
+                set.Add(SequentialGuid.NewGuid());
+            }
+
+            set.Count.Should().Be(_oneMillion);
+            set.Distinct().Count().Should().Be(_oneMillion);
         }
     }
 }

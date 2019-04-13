@@ -6,31 +6,46 @@ namespace System.Chase
     {
         private const int _numberOfDateBytes = 8;
         private const int _embedAtIndex = 0; // index 0 ensures we're sequential by date
-        private static readonly System.DateTime _epoch = new System.DateTime(1970,1,1,0,0,0,0,DateTimeKind.Utc);
+        private static readonly System.DateTime _epoch = new System.DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
         private static readonly object _lock = new object();
         private static long _previousTicks;
-        
-        public static Guid NewGuid() 
+        private static Guid _previousSeed;
+
+        public static Guid NewGuid()
             => NewGuid(Guid.NewGuid());
 
         public static Guid NewGuid(string seed)
-            => NewGuid(new Guid(seed));
-        
-        public static Guid NewGuid(Guid seed)
+        {
+            if (seed.Length < 8)
+                throw new ArgumentException("Seed must be a minimum of 8 characters", nameof(seed));
+
+            var seedBytes = Encoding.ASCII.GetBytes(seed);
+            var truncated = new byte[16];
+
+            Array.Copy(seedBytes, 0, truncated, 8, 8);
+
+            return NewGuid(new Guid(truncated));
+        }
+
+        public static Guid NewGuid(Guid guid)
         {
             lock (_lock)
             {
-                var outputBytes = seed.ToByteArray();
+                var outputBytes = guid.ToByteArray();
                 var stamp = System.DateTime.UtcNow;
-                while (stamp.Ticks == _previousTicks) stamp = System.DateTime.UtcNow; // don't allow another timestamp within the same CPU Tick
+
+                // don't allow another timestamp within the same CPU Tick and Seed
+                while (stamp.Ticks == _previousTicks && guid == _previousSeed) stamp = System.DateTime.UtcNow;
 
                 _previousTicks = stamp.Ticks;
+                _previousSeed = guid;
+
                 var dateBytes = DateTimeToBytes(stamp);
                 Array.Copy(dateBytes, 0, outputBytes, _embedAtIndex, _numberOfDateBytes);
                 return new Guid(outputBytes);
             }
         }
-        
+
         public static System.DateTime GetTimestamp(Guid guid)
         {
             lock (_lock)
@@ -52,8 +67,8 @@ namespace System.Chase
                 }
             }
         }
-        
-        private static byte[] DateTimeToBytes(System.DateTime timestamp) 
+
+        private static byte[] DateTimeToBytes(System.DateTime timestamp)
         {
             var ms = ToUnixTicks(timestamp);
             var msBytes = BitConverter.GetBytes(ms);
@@ -64,20 +79,20 @@ namespace System.Chase
             return result;
         }
 
-        private static System.DateTime BytesToDateTime(byte[] value) 
+        private static System.DateTime BytesToDateTime(byte[] value)
         {
             var tickBytes = new byte[8];
             const int index = 8 - _numberOfDateBytes;
             Array.Copy(value, 0, tickBytes, index, _numberOfDateBytes);
-            if(BitConverter.IsLittleEndian) Array.Reverse(tickBytes);
+            if (BitConverter.IsLittleEndian) Array.Reverse(tickBytes);
             var ms = BitConverter.ToInt64(tickBytes, 0);
             return FromUnixTicks(ms);
         }
 
-        private static long ToUnixTicks(System.DateTime timestamp) 
+        private static long ToUnixTicks(System.DateTime timestamp)
             => timestamp.Ticks - _epoch.Ticks;
 
-        private static System.DateTime FromUnixTicks(long ms) 
-            => _epoch.AddTicks(ms );
+        private static System.DateTime FromUnixTicks(long ms)
+            => _epoch.AddTicks(ms);
     }
 }
