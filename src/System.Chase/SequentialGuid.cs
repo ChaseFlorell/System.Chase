@@ -26,7 +26,7 @@ namespace System.Chase
                 try
                 {
                     var result = BytesToDateTime(dateBytes);
-                    if (result < DateTimeHelper.Epoch || result > DateTime.MaxValue)
+                    if (result < DateTime.MinValue || result > DateTime.MaxValue)
                         throw new InvalidOperationException($"Cannot extract a valid DateTime from {guid}");
                     return result;
                 }
