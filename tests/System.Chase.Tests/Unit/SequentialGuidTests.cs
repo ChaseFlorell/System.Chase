@@ -15,7 +15,7 @@ namespace System.Chase.Tests.Unit
         public void ShouldGenerateGuid()
         {
             // execute
-            var sequentialGuid = SequentialGuid.NewGuid();
+            var sequentialGuid = SequentialGuid.NewSequentialGuid();
 
             // assert
             sequentialGuid.Should().NotBeEmpty();
@@ -25,7 +25,7 @@ namespace System.Chase.Tests.Unit
         public void ShouldGetTimestamp()
         {
             // setup
-            var sequentialGuid = SequentialGuid.NewGuid();
+            var sequentialGuid = SequentialGuid.NewSequentialGuid();
             
             // execute
             var timestamp = SequentialGuid.GetTimestamp(sequentialGuid);
@@ -68,17 +68,17 @@ namespace System.Chase.Tests.Unit
         [TestCase("9DE73266-4A2C-4B26-8352-3AD57AD61BB5")]
         [TestCase("I 🧡 Xamarin")]
         [TestCase("Words With Spaces")]
-        [TestCase("System.Chase")]
+        [TestCase("Microsoft")]
         public void ShouldGenerateSequentialGuidsWithKnownSeed(string seed)
         {
             // setup
             const int expectedLength = 50;
-            var guidList = new List<Guid>();
+            var guidList = new HashSet<Guid>();
 
             // execute
             for (var i = 0; i < expectedLength; i++)
             {
-                guidList.Add(SequentialGuid.NewGuid(seed));
+                guidList.Add(SequentialGuid.NewSequentialGuid(seed));
             }
 
             // assert
@@ -105,15 +105,15 @@ namespace System.Chase.Tests.Unit
         [TestCase(34)]
         [TestCase(55)]
         [TestCase(89)]
-        public void ShouldGenerateSequentialGuidsWithDynamicSeed(int expectedLength)
+        public void ShouldGenerateSequentialGuidsWithUnknownSeedSeed(int expectedLength)
         {
             // setup
-            var guidList = new List<Guid>();
+            var guidList = new HashSet<Guid>();
 
             // execute
             for (var i = 0; i < expectedLength; i++)
             {
-                guidList.Add(SequentialGuid.NewGuid());
+                guidList.Add(SequentialGuid.NewSequentialGuid());
             }
 
             // assert
@@ -134,12 +134,12 @@ namespace System.Chase.Tests.Unit
         {
             // setup
             const int expectedLength = 50;
-            var guidList = new List<Guid>();
+            var guidList = new HashSet<Guid>();
 
             // execute
             for (var i = 0; i < expectedLength; i++)
             {
-                guidList.Add(SequentialGuid.NewGuid());
+                guidList.Add(SequentialGuid.NewSequentialGuid());
             }
 
             // assert
@@ -174,11 +174,29 @@ namespace System.Chase.Tests.Unit
             var set = new HashSet<Guid>();
             for (var i = 0; i < _oneMillion; i++)
             {
-                set.Add(SequentialGuid.NewGuid());
+                set.Add(SequentialGuid.NewSequentialGuid());
             }
 
             set.Count.Should().Be(_oneMillion);
             set.Distinct().Count().Should().Be(_oneMillion);
+        }
+
+        [Test]
+        [TestCase("")]
+        [TestCase("a")]
+        [TestCase("as")]
+        [TestCase("asd")]
+        [TestCase("asdf")]
+        [TestCase("asdfj")]
+        [TestCase("asdfjk")]
+        [TestCase("asdfjkl")]
+        public void ShouldThrowWhenSeedIsTooShort(string seed)
+        {
+            // setup
+            Action action = () => SequentialGuid.NewSequentialGuid(seed);
+            
+            // execute
+            action.Should().Throw<ArgumentException>().WithMessage("Seed must be a minimum of 8 characters\nParameter name: seed");
         }
     }
 }
